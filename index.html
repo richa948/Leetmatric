@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LeetMatric</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- header, user, stats -->
+      <h1>LeetMatric</h1>
+
+      <div class="user-container">
+        <p>Enter your username below:</p>
+        <div class="user-input-container">
+          <input
+            type="text"
+            placeholder="Enter your username here"
+            id="user-input"
+          />
+          <button id="search-btn">Search</button>
+        </div>
+      </div>
+
+      <div class="stats-container">
+        <div class="progress">
+          <div class="progress-item">
+            <div id="easy-progress" class="circle">
+              <span id="easy-level"></span>
+              <p>Easy</p>
+            </div>
+          </div>
+
+          <div class="progress-item">
+            <div id="medium-progress" class="circle">
+              <span id="medium-level"></span>
+              <p>Medium</p>
+            </div>
+          </div>
+
+          <div class="progress-item">
+            <div id="hard-progress" class="circle">
+              <span id="hard-level"></span>
+              <p>Hard</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="stats-card">
+          <!-- directly populate card here from the js -->
+        </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
