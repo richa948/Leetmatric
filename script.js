@@ -95,9 +95,9 @@ document.addEventListener("DOMContentLoaded", function () {
   function updateProgress(solved, total, level, circle) {
     if (!circle || !level) return;
 
-    const progressDegree = (solved / total) * 100;
+    const progressDegree = (solved / total) * 360;
 
-    circle.style.setProperty("--progress-degree", `${progressDegree*3.6}deg`);
+    circle.style.setProperty("--progress-degree", `${progressDegree}deg`);
 
     level.textContent = `${solved}/${total}`;
   }
