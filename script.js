@@ -34,9 +34,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
    
   //Error message
- function showError(message) {
-   cardStatsContainer.innerHTML = `<p class="error">${message}</p>`;
- }
+function showError(message) {
+  cardStatsContainer.innerHTML = `<p class="error">${message}</p>`;
+}
 
   // Fetch LeetCode data
  async function fetchUserDetails(username) {
@@ -130,9 +130,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const allQuestions = parsedData.data.allQuestionsCount;
 
-    const totalEasyQues = allQuestions[1].count;
-    const totalMediumQues = allQuestions[2].count;
-    const totalHardQues = allQuestions[3].count;
+    // ✅ FIXED (use find, not index)
+    const easyQ = allQuestions.find((q) => q.difficulty === "Easy");
+    const mediumQ = allQuestions.find((q) => q.difficulty === "Medium");
+    const hardQ = allQuestions.find((q) => q.difficulty === "Hard");
+
+    const totalEasyQues = easyQ?.count || 0;
+    const totalMediumQues = mediumQ?.count || 0;
+    const totalHardQues = hardQ?.count || 0;
 
     const submissionStats =
       parsedData.data.matchedUser.submitStats.acSubmissionNum;
