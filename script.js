@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
   const searchButton = document.getElementById("search-btn");
   const usernameInput = document.getElementById("user-input");
-  const statsContainer = document.querySelector(".stats-container");
 
   const loader = document.getElementById("loader");
 
@@ -15,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const cardStatsContainer = document.getElementById("stats-card");
 
-  // Username validation
+  // ✅ Username validation
   function validateUsername(username) {
     if (username.trim() === "") {
       alert("Username should not be empty");
@@ -23,114 +22,95 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const regex = /^[a-zA-Z0-9_-]{1,15}$/;
-
-    const isMatching = regex.test(username);
-
-    if (!isMatching) {
-      alert("Invalid username");
-    }
-
-    return isMatching;
+    return regex.test(username);
   }
-   
-  //Error message
-function showError(message) {
-  cardStatsContainer.innerHTML = `<p class="error">${message}</p>`;
-}
 
-  // Fetch LeetCode data
- async function fetchUserDetails(username) {
-   try {
-     loader.classList.remove("hidden");
-     statsContainer.innerHTML = "";
+  // ✅ Show error WITHOUT breaking UI
+  function showError(message) {
+    cardStatsContainer.innerHTML = `<p class="error">${message}</p>`;
+  }
 
-     searchButton.textContent = "Searching...";
-     searchButton.disabled = true;
+  // ✅ Fetch data
+  async function fetchUserDetails(username) {
+    try {
+      loader.classList.remove("hidden");
+      cardStatsContainer.innerHTML = ""; // ✅ only clear cards
 
-     // ✅ trim username before sending
-     const cleanUsername = username.trim();
+      searchButton.textContent = "Searching...";
+      searchButton.disabled = true;
 
-     if (!cleanUsername) {
-       showError("Username is required");
-       return;
-     }
+      const cleanUsername = username.trim();
 
-     const response = await fetch("/api/leetcode", {
-       method: "POST",
-       headers: {
-         "Content-Type": "application/json",
-       },
-       body: JSON.stringify({
-         query: `
-          query userSessionProgress($username: String!) {
-            allQuestionsCount {
-              difficulty
-              count
-            }
-            matchedUser(username: $username) {
-              submitStats {
-                acSubmissionNum {
-                  difficulty
-                  count
-                  submissions
-                }
-                totalSubmissionNum {
-                  difficulty
-                  count
-                  submissions
+      const response = await fetch("/api/leetcode", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: `
+            query userSessionProgress($username: String!) {
+              allQuestionsCount {
+                difficulty
+                count
+              }
+              matchedUser(username: $username) {
+                submitStats {
+                  acSubmissionNum {
+                    difficulty
+                    count
+                    submissions
+                  }
+                  totalSubmissionNum {
+                    difficulty
+                    count
+                    submissions
+                  }
                 }
               }
             }
-          }
-        `,
-         variables: {
-           username: cleanUsername, // ✅ FIXED
-         },
-       }),
-     });
+          `,
+          variables: { username: cleanUsername },
+        }),
+      });
 
-     const parsedData = await response.json();
+      const parsedData = await response.json();
+      console.log("API DATA:", parsedData);
 
-     console.log("API DATA:", parsedData);
+      if (!response.ok) {
+        showError(parsedData.error || "API Error");
+        return;
+      }
 
-     // ✅ Proper error handling
-     if (!response.ok) {
-       showError(parsedData.error || "API Error");
-       return;
-     }
+      displayUserData(parsedData);
+    } catch (error) {
+      console.error(error);
+      showError("Failed to fetch data");
+    } finally {
+      loader.classList.add("hidden");
+      searchButton.textContent = "Search";
+      searchButton.disabled = false;
+    }
+  }
 
-     displayUserData(parsedData);
-   } catch (error) {
-     console.error(error);
-     showError("Failed to fetch data");
-   } finally {
-     loader.classList.add("hidden");
-     searchButton.textContent = "Search";
-     searchButton.disabled = false;
-   }
- }
-
-  // Update progress circles
+  // ✅ Update progress UI
   function updateProgress(solved, total, level, circle) {
-    if (!circle || !level) return;
+    if (!circle || !level || total === 0) return;
 
     const progressDegree = (solved / total) * 360;
-
     circle.style.setProperty("--progress-degree", `${progressDegree}deg`);
-
     level.textContent = `${solved}/${total}`;
   }
 
-  // Display user data
+  // ✅ Display data
   function displayUserData(parsedData) {
-   if (!parsedData?.data?.matchedUser) {
-     showError("User not found");
-     return;
-   }
+    if (!parsedData?.data?.matchedUser) {
+      showError("User not found");
+      return;
+    }
 
     const allQuestions = parsedData.data.allQuestionsCount;
 
-    // ✅ FIXED (use find, not index)
+    // ✅ FIXED mapping
     const easyQ = allQuestions.find((q) => q.difficulty === "Easy");
     const mediumQ = allQuestions.find((q) => q.difficulty === "Medium");
     const hardQ = allQuestions.find((q) => q.difficulty === "Hard");
@@ -142,23 +122,21 @@ function showError(message) {
     const submissionStats =
       parsedData.data.matchedUser.submitStats.acSubmissionNum;
 
-  const easyS = submissionStats.find((s) => s.difficulty === "Easy");
-  const mediumS = submissionStats.find((s) => s.difficulty === "Medium");
-  const hardS = submissionStats.find((s) => s.difficulty === "Hard");
+    const easyS = submissionStats.find((s) => s.difficulty === "Easy");
+    const mediumS = submissionStats.find((s) => s.difficulty === "Medium");
+    const hardS = submissionStats.find((s) => s.difficulty === "Hard");
 
-  const solvedEasy = easyS?.count || 0;
-  const solvedMedium = mediumS?.count || 0;
-  const solvedHard = hardS?.count || 0;
+    const solvedEasy = easyS?.count || 0;
+    const solvedMedium = mediumS?.count || 0;
+    const solvedHard = hardS?.count || 0;
 
     updateProgress(solvedEasy, totalEasyQues, easyLevel, easyProgressCircle);
-
     updateProgress(
       solvedMedium,
       totalMediumQues,
       mediumLevel,
       mediumProgressCircle,
     );
-
     updateProgress(solvedHard, totalHardQues, hardLevel, hardProgressCircle);
 
     const totalSubmissionStats =
@@ -169,48 +147,37 @@ function showError(message) {
         level: "Overall Submissions",
         value: totalSubmissionStats[0].submissions,
       },
-
-      {
-        level: "Easy Submissions",
-        value: totalSubmissionStats[1].submissions,
-      },
-
+      { level: "Easy Submissions", value: totalSubmissionStats[1].submissions },
       {
         level: "Medium Submissions",
         value: totalSubmissionStats[2].submissions,
       },
-
-      {
-        level: "Hard Submissions",
-        value: totalSubmissionStats[3].submissions,
-      },
+      { level: "Hard Submissions", value: totalSubmissionStats[3].submissions },
     ];
 
-   cardStatsContainer.innerHTML = "";
+    cardStatsContainer.innerHTML = "";
 
-   cardsData.forEach((data) => {
-     const card = document.createElement("div");
-     card.className = "card";
+    cardsData.forEach((data) => {
+      const card = document.createElement("div");
+      card.className = "card";
 
-     const title = document.createElement("h3");
-     title.textContent = data.level;
+      const title = document.createElement("h3");
+      title.textContent = data.level;
 
-     const value = document.createElement("p");
-     value.textContent = data.value;
+      const value = document.createElement("p");
+      value.textContent = data.value;
 
-     card.appendChild(title);
-     card.appendChild(value);
-
-     cardStatsContainer.appendChild(card);
-   });
+      card.appendChild(title);
+      card.appendChild(value);
+      cardStatsContainer.appendChild(card);
+    });
   }
 
-  // Button click
+  // ✅ Button click
   searchButton.addEventListener("click", function () {
-     if (searchButton.disabled) return;
-    const username = usernameInput.value;
+    if (searchButton.disabled) return;
 
-    console.log(username);
+    const username = usernameInput.value;
 
     if (validateUsername(username)) {
       fetchUserDetails(username);
