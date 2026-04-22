@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   const searchButton = document.getElementById("search-btn");
   const usernameInput = document.getElementById("user-input");
-  const statsContainer = document.getElementById("stats-container");
+  const statsContainer = document.querySelector(".stats-container");
 
   const loader = document.getElementById("loader");
 
@@ -48,44 +48,41 @@ document.addEventListener("DOMContentLoaded", function () {
       searchButton.disabled = true;
       //   statsContainer.classList.add("hidden")
 
-      const graphql = JSON.stringify({
-        query: `
-        query userSessionProgress($username: String!) {
-          allQuestionsCount {
+  const graphql = {
+    query: `
+    query userSessionProgress($username: String!) {
+      allQuestionsCount {
+        difficulty
+        count
+      }
+      matchedUser(username: $username) {
+        submitStats {
+          acSubmissionNum {
             difficulty
             count
+            submissions
           }
-          matchedUser(username: $username) {
-            submitStats {
-              acSubmissionNum {
-                difficulty
-                count
-                submissions
-              }
-              totalSubmissionNum {
-                difficulty
-                count
-                submissions
-              }
-            }
+          totalSubmissionNum {
+            difficulty
+            count
+            submissions
           }
         }
-        `,
-        variables: { username: username },
-      });
+      }
+    }
+  `,
+    variables: { username },
+  };
 
       const requestOptions = {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: graphql,
+        body: JSON.stringify(graphql),
       };
 
-      const response = await fetch(
-        "https://leetcode.com/graphql",
-        requestOptions,
-      );
+      const response = await fetch("/api/leetcode", requestOptions);
 
       if (!response.ok) {
         throw new Error("Unable to fetch user details");
@@ -93,7 +90,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const parsedData = await response.json();
 
-      console.log(parsedData);
+      console.log("API DATA:", parsedData);
+
+      if (!response.ok) {
+        showError(parsedData.error || "API Error");
+        return;
+      }
 
       displayUserData(parsedData);
     } catch (error) {
