@@ -137,9 +137,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const submissionStats =
       parsedData.data.matchedUser.submitStats.acSubmissionNum;
 
-    const solvedEasy = submissionStats[1].count;
-    const solvedMedium = submissionStats[2].count;
-    const solvedHard = submissionStats[3].count;
+  const easyS = submissionStats.find((s) => s.difficulty === "Easy");
+  const mediumS = submissionStats.find((s) => s.difficulty === "Medium");
+  const hardS = submissionStats.find((s) => s.difficulty === "Hard");
+
+  const solvedEasy = easyS?.count || 0;
+  const solvedMedium = mediumS?.count || 0;
+  const solvedHard = hardS?.count || 0;
 
     updateProgress(solvedEasy, totalEasyQues, easyLevel, easyProgressCircle);
 
