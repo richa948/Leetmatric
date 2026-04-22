@@ -48,7 +48,7 @@ h1 {
 }
 
 #search-btn {
-  padding: 0.4rem;
+  padding: 0.5rem;
   border-radius: 5px;
 }
 
@@ -56,6 +56,10 @@ h1 {
   background-color: #283a2e;
   color: white;
   cursor: pointer;
+}
+
+.hidden {
+  display: none;
 }
 
 .circle {

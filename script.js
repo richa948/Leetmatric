@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const usernameInput = document.getElementById("user-input");
   const statsContainer = document.getElementById("stats-container");
 
+  const loader = document.getElementById("loader");
+
   const easyProgressCircle = document.getElementById("easy-progress");
   const mediumProgressCircle = document.getElementById("medium-progress");
   const hardProgressCircle = document.getElementById("hard-progress");
@@ -30,13 +32,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
     return isMatching;
   }
+   
+  //Error message
+  function showError(message) {
+    statsContainer.innerHTML = `<p class="error">${message}</p>`;
+  }
 
   // Fetch LeetCode data
   async function fetchUserDetails(username) {
     try {
+      loader.classList.remove("hidden"); // ✅ ADD THIS
+      statsContainer.innerHTML = ""; // ✅ CLEAR OLD DATA
+
       searchButton.textContent = "Searching...";
       searchButton.disabled = true;
-    //   statsContainer.classList.add("hidden") 
+      //   statsContainer.classList.add("hidden")
 
       const graphql = JSON.stringify({
         query: `
@@ -72,7 +82,10 @@ document.addEventListener("DOMContentLoaded", function () {
         body: graphql,
       };
 
-      const response = await fetch("/api/leetcode", requestOptions);
+      const response = await fetch(
+        "https://leetcode.com/graphql",
+        requestOptions,
+      );
 
       if (!response.ok) {
         throw new Error("Unable to fetch user details");
@@ -84,8 +97,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
       displayUserData(parsedData);
     } catch (error) {
-      statsContainer.innerHTML = `<p>${error.message}</p>`;
+      showError("Failed to fetch data");
     } finally {
+      loader.classList.add("hidden"); 
       searchButton.textContent = "Search";
       searchButton.disabled = false;
     }
@@ -104,10 +118,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Display user data
   function displayUserData(parsedData) {
-    if (!parsedData.data.matchedUser) {
-      statsContainer.innerHTML = `<p>User not found</p>`;
-      return;
-    }
+   if (!parsedData?.data?.matchedUser) {
+     showError("User not found");
+     return;
+   }
 
     const allQuestions = parsedData.data.allQuestionsCount;
 
@@ -132,7 +146,6 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
     updateProgress(solvedHard, totalHardQues, hardLevel, hardProgressCircle);
-
 
     const totalSubmissionStats =
       parsedData.data.matchedUser.submitStats.totalSubmissionNum;
@@ -159,20 +172,28 @@ document.addEventListener("DOMContentLoaded", function () {
       },
     ];
 
-    cardStatsContainer.innerHTML = cardsData
-      .map(
-        (data) => `
-        <div class="card">
-          <h3>${data.level}</h3>
-          <p>${data.value}</p>
-        </div>
-      `,
-      )
-      .join("");
+   cardStatsContainer.innerHTML = "";
+
+   cardsData.forEach((data) => {
+     const card = document.createElement("div");
+     card.className = "card";
+
+     const title = document.createElement("h3");
+     title.textContent = data.level;
+
+     const value = document.createElement("p");
+     value.textContent = data.value;
+
+     card.appendChild(title);
+     card.appendChild(value);
+
+     cardStatsContainer.appendChild(card);
+   });
   }
 
   // Button click
   searchButton.addEventListener("click", function () {
+     if (searchButton.disabled) return;
     const username = usernameInput.value;
 
     console.log(username);
