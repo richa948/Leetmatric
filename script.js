@@ -39,73 +39,76 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Fetch LeetCode data
-  async function fetchUserDetails(username) {
-    try {
-      loader.classList.remove("hidden"); // ✅ ADD THIS
-      statsContainer.innerHTML = ""; // ✅ CLEAR OLD DATA
+ async function fetchUserDetails(username) {
+   try {
+     loader.classList.remove("hidden");
+     statsContainer.innerHTML = "";
 
-      searchButton.textContent = "Searching...";
-      searchButton.disabled = true;
-      //   statsContainer.classList.add("hidden")
+     searchButton.textContent = "Searching...";
+     searchButton.disabled = true;
 
-  const graphql = {
-    query: `
-    query userSessionProgress($username: String!) {
-      allQuestionsCount {
-        difficulty
-        count
-      }
-      matchedUser(username: $username) {
-        submitStats {
-          acSubmissionNum {
-            difficulty
-            count
-            submissions
+     // ✅ trim username before sending
+     const cleanUsername = username.trim();
+
+     if (!cleanUsername) {
+       showError("Username is required");
+       return;
+     }
+
+     const response = await fetch("/api/leetcode", {
+       method: "POST",
+       headers: {
+         "Content-Type": "application/json",
+       },
+       body: JSON.stringify({
+         query: `
+          query userSessionProgress($username: String!) {
+            allQuestionsCount {
+              difficulty
+              count
+            }
+            matchedUser(username: $username) {
+              submitStats {
+                acSubmissionNum {
+                  difficulty
+                  count
+                  submissions
+                }
+                totalSubmissionNum {
+                  difficulty
+                  count
+                  submissions
+                }
+              }
+            }
           }
-          totalSubmissionNum {
-            difficulty
-            count
-            submissions
-          }
-        }
-      }
-    }
-  `,
-    variables: { username },
-  };
-
-      const requestOptions = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(graphql),
-      };
-
-      const response = await fetch("/api/leetcode", requestOptions);
-
-      if (!response.ok) {
-        throw new Error("Unable to fetch user details");
-      }
+        `,
+         variables: {
+           username: cleanUsername, // ✅ FIXED
+         },
+       }),
+     });
 
      const parsedData = await response.json();
 
      console.log("API DATA:", parsedData);
 
+     // ✅ Proper error handling
      if (!response.ok) {
        showError(parsedData.error || "API Error");
        return;
      }
 
-      displayUserData(parsedData);
-    } catch (error) {
-      showError("Failed to fetch data");
-    } finally {
-      loader.classList.add("hidden"); 
-      searchButton.textContent = "Search";
-      searchButton.disabled = false;
-    }
-  }
+     displayUserData(parsedData);
+   } catch (error) {
+     console.error(error);
+     showError("Failed to fetch data");
+   } finally {
+     loader.classList.add("hidden");
+     searchButton.textContent = "Search";
+     searchButton.disabled = false;
+   }
+ }
 
   // Update progress circles
   function updateProgress(solved, total, level, circle) {
