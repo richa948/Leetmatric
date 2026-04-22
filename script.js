@@ -34,9 +34,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
    
   //Error message
-  function showError(message) {
-    statsContainer.innerHTML = `<p class="error">${message}</p>`;
-  }
+ function showError(message) {
+   cardStatsContainer.innerHTML = `<p class="error">${message}</p>`;
+ }
 
   // Fetch LeetCode data
  async function fetchUserDetails(username) {
