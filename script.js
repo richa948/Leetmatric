@@ -88,14 +88,14 @@ document.addEventListener("DOMContentLoaded", function () {
         throw new Error("Unable to fetch user details");
       }
 
-      const parsedData = await response.json();
+     const parsedData = await response.json();
 
-      console.log("API DATA:", parsedData);
+     console.log("API DATA:", parsedData);
 
-      if (!response.ok) {
-        showError(parsedData.error || "API Error");
-        return;
-      }
+     if (!response.ok) {
+       showError(parsedData.error || "API Error");
+       return;
+     }
 
       displayUserData(parsedData);
     } catch (error) {
